@@ -24,4 +24,23 @@ describe("Logger", () => {
 
     expect(logSpy).toHaveBeenCalledWith("[debug] Debug Trace", "extra", 42);
   });
+
+  it("logs warnings through console.warn", () => {
+    const logger = new Logger();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    logger.warn("Feed slow", 1200);
+
+    expect(warnSpy).toHaveBeenCalledWith("[warn] Feed slow", 1200);
+  });
+
+  it("logs errors through console.error so failures reach the host console", () => {
+    const logger = new Logger();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const cause = new Error("Failed to fetch");
+
+    logger.error("RSS refresh failed", cause);
+
+    expect(errorSpy).toHaveBeenCalledWith("[error] RSS refresh failed", cause);
+  });
 });

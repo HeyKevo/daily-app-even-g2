@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { measureTextWrap } from "@evenrealities/pretext";
 import { createRssFeedListScreen } from "../../../src/screens/rss/RssFeedListScreen";
 import type { DataService, DashboardData, DetailData, ListData } from "../../../src/services/data/DataService";
 import type { ViewModel } from "../../../src/ui/render/renderPipeline";
@@ -137,6 +138,62 @@ describe("RssFeedListScreen", () => {
 
     expect(router.toDetail).not.toHaveBeenCalled();
   });
+
+  it("wraps a long error across rows instead of cutting it at the row edge", async () => {
+    const message =
+      "Unable to load RSS feeds. Details: Tagesschau: www.tagesschau.de unreachable " +
+      "(Failed to fetch) and the dev proxy failed: HTTP 502 Bad Gateway";
+    const dataService = createDataService({ id: "rss", title: "RSS Feeds", items: [] });
+    dataService.refreshList.mockRejectedValue(new Error(message));
+    const router = createRouter();
+
+    const screen = createRssFeedListScreen("rss", dataService, createLogger(), router, vi.fn());
+    screen.onEnter();
+    await flushAsync();
+
+    const labels = readListLabels(screen.getViewModel());
+
+    expect(labels.length).toBeGreaterThan(1);
+    expect(labels.join(" ")).toBe(`Error: ${message}`);
+    for (const label of labels) {
+      expect(measureTextWrap(label, 548).lineCount).toBe(1);
+    }
+    // Wrapped status rows stay on one page and none of them opens a detail view.
+    expect(readPageStatus(screen.getViewModel())).toBe("1/1");
+
+    screen.onInput({ type: "Down" });
+    screen.onInput({ type: "Click" });
+
+    expect(router.toDetail).not.toHaveBeenCalled();
+  });
+
+  it("logs the failure so it is visible in the host console", async () => {
+    const cause = new Error("Failed to fetch");
+    const dataService = createDataService({ id: "rss", title: "RSS Feeds", items: [] });
+    dataService.refreshList.mockRejectedValue(cause);
+    const logger = createLogger();
+
+    const screen = createRssFeedListScreen("rss", dataService, logger, createRouter(), vi.fn());
+    screen.onEnter();
+    await flushAsync();
+
+    expect(logger.error).toHaveBeenCalledWith(
+      "RSS refresh failed for rss: Failed to fetch",
+      cause
+    );
+  });
+
+  it("logs a successful refresh with the loaded item count", async () => {
+    const dataService = createDataService(createList(3));
+    const logger = createLogger();
+
+    const screen = createRssFeedListScreen("rss", dataService, logger, createRouter(), vi.fn());
+    screen.onEnter();
+    await flushAsync();
+
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith("RSS refresh ok for rss: 3 items");
+  });
 });
 
 function createList(count: number): ListData {
@@ -195,6 +252,8 @@ function createLogger() {
   return {
     info: vi.fn<(message: string) => void>(),
     debug: vi.fn<(message: string) => void>(),
+    warn: vi.fn<(message: string) => void>(),
+    error: vi.fn<(message: string, ...args: unknown[]) => void>(),
   };
 }
 

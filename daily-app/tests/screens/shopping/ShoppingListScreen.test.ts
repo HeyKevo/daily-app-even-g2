@@ -704,6 +704,8 @@ function createLogger() {
   return {
     info: vi.fn<(message: string) => void>(),
     debug: vi.fn<(message: string) => void>(),
+    warn: vi.fn<(message: string) => void>(),
+    error: vi.fn<(message: string, ...args: unknown[]) => void>(),
   };
 }
 
