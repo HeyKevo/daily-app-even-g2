@@ -10,7 +10,17 @@
     {
       "name": "network",
       "desc": "Load configured RSS feed XML.",
-      "whitelist": ["https://www.tagesschau.de"]
+      "whitelist": [
+        "https://www.tagesschau.de",
+        "https://arstechnica.com",
+        "https://feeds.arstechnica.com",
+        "https://api.theregister.com",
+        "https://simonwillison.net",
+        "https://newsletter.pragmaticengineer.com",
+        "https://www.platformer.news",
+        "https://www.404media.co",
+        "https://spectrum.ieee.org"
+      ]
     },
     {
       "name": "g2-microphone",
