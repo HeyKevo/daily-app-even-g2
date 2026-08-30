@@ -15,6 +15,8 @@ function createBridgeStub() {
 function createLoggerStub(): Logger {
   return {
     debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
     info: vi.fn(),
   } as unknown as Logger;
 }

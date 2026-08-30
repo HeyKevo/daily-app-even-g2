@@ -419,17 +419,23 @@ function createLogger() {
   return {
     info: () => {},
     debug: () => {},
+    warn: () => {},
+    error: () => {},
   };
 }
 
 function createSpyLogger() {
   const info = vi.fn<(message: string) => void>();
   const debug = vi.fn<(message: string) => void>();
+  const warn = vi.fn<(message: string) => void>();
+  const error = vi.fn<(message: string, ...args: unknown[]) => void>();
 
   return {
-    logger: { info, debug },
+    logger: { info, debug, warn, error },
     info,
     debug,
+    warn,
+    error,
   };
 }
 

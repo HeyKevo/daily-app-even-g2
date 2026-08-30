@@ -291,8 +291,10 @@ async function fetchFeedXml(url: string): Promise<string> {
       throw directError;
     }
     if (!import.meta.env.DEV) {
+      // In a packed build there is no dev proxy, so the host itself has to allow
+      // the request: check the app.json network whitelist first.
       throw new Error(
-        `${readErrorMessage(directError)} (blocked by CORS, proxy fallback is available in DEV only)`
+        `${readHost(url)} unreachable (${readErrorMessage(directError)}). Check the app.json network whitelist.`
       );
     }
 
@@ -301,7 +303,7 @@ async function fetchFeedXml(url: string): Promise<string> {
       return await fetchXml(proxiedUrl);
     } catch (proxyError) {
       throw new Error(
-        `${readErrorMessage(directError)}; proxy fallback failed: ${readErrorMessage(proxyError)}`
+        `${readHost(url)} unreachable (${readErrorMessage(directError)}) and the dev proxy failed: ${readErrorMessage(proxyError)}`
       );
     }
   }
@@ -315,10 +317,19 @@ async function fetchXml(url: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    const statusText = response.statusText ? ` ${response.statusText}` : "";
+    throw new Error(`HTTP ${response.status}${statusText}`);
   }
 
   return response.text();
+}
+
+function readHost(url: string): string {
+  try {
+    return new URL(url, "http://localhost").host || url;
+  } catch {
+    return url;
+  }
 }
 
 function shouldUseProxyFallback(error: unknown): boolean {

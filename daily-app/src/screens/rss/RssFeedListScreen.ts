@@ -4,6 +4,7 @@ import type { DataService, ListData, ListItem } from "../../services/data/DataSe
 import type { Logger } from "../../utils/logger";
 import type { Router } from "../../navigation/router";
 import { clamp } from "../../utils/clamp";
+import { wrapTextToLines } from "../../utils/wrapText";
 import { buildRssFeedListViewModel } from "../../ui/components/RssFeedListView";
 import type { ViewModel } from "../../ui/render/renderPipeline";
 import { readSelectedIndex, readSelectedItemName } from "../shared/readSelectedIndex";
@@ -14,6 +15,9 @@ const NEXT_PAGE_ITEM_ID = "__rss-next-page__";
 const PREVIOUS_PAGE_LABEL = "[Previous page]";
 const NEXT_PAGE_LABEL = "[Next page]";
 const MAX_ROWS_PER_PAGE = 20;
+// Usable text width of a list row, minus the selection border.
+const STATUS_ROW_WIDTH_PX = 548;
+const MAX_STATUS_ROWS = 8;
 
 interface RssItemRow {
   kind: "item";
@@ -74,11 +78,15 @@ export function createRssFeedListScreen(
       const paginated = paginateRows(list, pageIndex, false, null);
       pageIndex = paginated.pageIndex;
       selectedRowIndex = clamp(selectedRowIndex, 0, Math.max(0, paginated.rows.length - 1));
+      logger.info(`RSS refresh ok for ${listId}: ${list.items.length} items`);
     } catch (error) {
       if (sequence !== refreshSequence) {
         return;
       }
       loadError = error instanceof Error ? error.message : "Unknown RSS error";
+      // The glasses row can only show a trimmed message, so keep the full cause
+      // (name, message, stack) in the host console for diagnosis.
+      logger.error(`RSS refresh failed for ${listId}: ${loadError}`, error);
     } finally {
       if (sequence !== refreshSequence) {
         return;
@@ -235,21 +243,16 @@ function paginateRows(
     };
   }
 
-  const hasOnlyStatusItem = visible.items.length === 1 && visible.items[0]?.id === STATUS_ITEM_ID;
-  if (hasOnlyStatusItem) {
-    const statusItem = visible.items[0];
-    if (!statusItem) {
-      return {
-        title: visible.title,
-        rows: [],
-        pageIndex: 0,
-        pageCount: 1,
-      };
-    }
-
+  // Status copy is pre-wrapped across several rows, so it never paginates.
+  const hasOnlyStatusItems = visible.items.every((item) => isStatusItemId(item.id));
+  if (hasOnlyStatusItems) {
     return {
       title: visible.title,
-      rows: [{ kind: "status", id: statusItem.id, label: statusItem.label }],
+      rows: visible.items.map((item) => ({
+        kind: "status" as const,
+        id: item.id,
+        label: item.label,
+      })),
       pageIndex: 0,
       pageCount: 1,
     };
@@ -340,13 +343,21 @@ function withStatusState(list: ListData, isLoading: boolean, loadError: string |
       ? `Error: ${loadError}`
       : "No RSS items found.";
 
-  const stateItem: ListItem = {
-    id: STATUS_ITEM_ID,
-    label: message,
-  };
+  // One label per rendered line: a single row would cut the message at the row edge.
+  const lines = wrapTextToLines(message, STATUS_ROW_WIDTH_PX, MAX_STATUS_ROWS);
+  const statusLines = lines.length > 0 ? lines : [message];
+
+  const stateItems: ListItem[] = statusLines.map((line, index) => ({
+    id: index === 0 ? STATUS_ITEM_ID : `${STATUS_ITEM_ID}${index}__`,
+    label: line,
+  }));
 
   return {
     ...list,
-    items: [stateItem],
+    items: stateItems,
   };
+}
+
+function isStatusItemId(id: string): boolean {
+  return id === STATUS_ITEM_ID || /^__status__\d+__$/.test(id);
 }
