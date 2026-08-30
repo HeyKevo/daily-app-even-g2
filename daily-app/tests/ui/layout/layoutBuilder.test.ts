@@ -467,7 +467,7 @@ describe("buildLayout", () => {
     const list = layout.listObject?.[0];
 
     expect(list?.itemContainer?.itemCount).toBe(1);
-    expect(list?.itemContainer?.itemName).toEqual(["Keine Eintraege verfuegbar."]);
+    expect(list?.itemContainer?.itemName).toEqual(["No items available."]);
   });
 
   it("caps list entries at 20 items", () => {

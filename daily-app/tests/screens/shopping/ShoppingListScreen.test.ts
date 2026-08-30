@@ -67,7 +67,7 @@ describe("ShoppingListScreen", () => {
       title: "Shopping List",
       items: [
         { id: "milk", label: "[ ] Milch" },
-        { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+        { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
       ],
     });
     const screen = createShoppingListScreen(
@@ -127,7 +127,7 @@ describe("ShoppingListScreen", () => {
         title: "Shopping List",
         items: [
           { id: "bread", label: "[ ] Brot" },
-          { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+          { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
           { id: "milk", label: "[x] Milch" },
         ],
       };
@@ -182,7 +182,7 @@ describe("ShoppingListScreen", () => {
       title: "Shopping List",
       items: [
         { id: "bread", label: "[ ] B" },
-        { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+        { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
         { id: "a", label: "[x] A" },
       ],
     });
@@ -346,7 +346,7 @@ describe("ShoppingListScreen", () => {
           title: "Shopping List",
           items: [
             { id: "a", label: "[ ] A" },
-            { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+            { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
             { id: "b", label: "[x] B" },
           ],
         };
@@ -359,7 +359,7 @@ describe("ShoppingListScreen", () => {
           id: SHOPPING_LIST_ID,
           title: "Shopping List",
           items: [
-            { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+            { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
             { id: "a", label: "[x] A" },
             { id: "b", label: "[x] B" },
           ],
@@ -545,7 +545,7 @@ describe("ShoppingListScreen", () => {
 
     screen.onInput({
       type: "Click",
-      raw: { listEvent: { currentSelectItemName: "Milch", eventType: 0 } },
+      raw: { listEvent: { currentSelectItemName: "Milk", eventType: 0 } },
     });
     await flushAsync();
 
@@ -572,7 +572,7 @@ describe("ShoppingListScreen", () => {
     const listContainer = screen.getViewModel().containers[0];
     expect(listContainer?.type).toBe("list");
     if (listContainer?.type === "list") {
-      expect(listContainer.items[0]).toBe("+ Neues Todo sprechen");
+      expect(listContainer.items[0]).toBe("+ Add todo by voice");
       expect(listContainer.items[1]).toBe("[ ] Milch");
     }
   });
@@ -590,7 +590,7 @@ describe("ShoppingListScreen", () => {
         options.onSnapshot({
           status: "listening",
           transcript: "",
-          message: "Sprich das neue Todo ein.",
+          message: "Say the new todo.",
         });
         return { stop: vi.fn(async () => {}) };
       },
@@ -625,7 +625,7 @@ describe("ShoppingListScreen", () => {
     });
     const speechService = createTodoSpeechService({
       async start() {
-        throw new Error("Spracherkennung nicht verfuegbar");
+        throw new Error("Voice input not available");
       },
     });
     const screen = createShoppingListScreen(
@@ -645,7 +645,7 @@ describe("ShoppingListScreen", () => {
     const errorView = screen.getViewModel();
     expect(errorView.containers[0]?.type).toBe("text");
     if (errorView.containers[0]?.type === "text") {
-      expect(errorView.containers[0].content).toContain("Spracherkennung nicht verfuegbar");
+      expect(errorView.containers[0].content).toContain("Voice input not available");
     }
 
     screen.onInput({ type: "Click" });
@@ -725,7 +725,7 @@ function createTodoSpeechService(overrides?: Partial<TodoSpeechService>): TodoSp
       options.onSnapshot({
         status: "listening",
         transcript: "",
-        message: "Sprich das neue Todo ein.",
+        message: "Say the new todo.",
       });
       return { stop: vi.fn(async () => {}) };
     },

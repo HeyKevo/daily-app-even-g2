@@ -11,8 +11,8 @@ import { readSelectedIndex, readSelectedItemName } from "../shared/readSelectedI
 const STATUS_ITEM_ID = "__status__";
 const PREVIOUS_PAGE_ITEM_ID = "__rss-prev-page__";
 const NEXT_PAGE_ITEM_ID = "__rss-next-page__";
-const PREVIOUS_PAGE_LABEL = "[Zurueck]";
-const NEXT_PAGE_LABEL = "[Naechste Seite]";
+const PREVIOUS_PAGE_LABEL = "[Previous page]";
+const NEXT_PAGE_LABEL = "[Next page]";
 const MAX_ROWS_PER_PAGE = 20;
 
 interface RssItemRow {
@@ -78,7 +78,7 @@ export function createRssFeedListScreen(
       if (sequence !== refreshSequence) {
         return;
       }
-      loadError = error instanceof Error ? error.message : "Unbekannter RSS-Fehler";
+      loadError = error instanceof Error ? error.message : "Unknown RSS error";
     } finally {
       if (sequence !== refreshSequence) {
         return;
@@ -324,21 +324,21 @@ function resolveContentSlotsForPage(page: number, remainingItems: number): numbe
 function withStatusState(list: ListData, isLoading: boolean, loadError: string | null): ListData {
   if (list.items.length > 0) {
     if (isLoading) {
-      return { ...list, title: `${list.title} (laedt...)` };
+      return { ...list, title: `${list.title} (loading...)` };
     }
 
     if (loadError) {
-      return { ...list, title: `${list.title} (letzter Stand)` };
+      return { ...list, title: `${list.title} (last update)` };
     }
 
     return list;
   }
 
   const message = isLoading
-    ? "RSS-Feeds werden geladen..."
+    ? "Loading RSS feeds..."
     : loadError
-      ? `Fehler: ${loadError}`
-      : "Keine RSS-Eintraege gefunden.";
+      ? `Error: ${loadError}`
+      : "No RSS items found.";
 
   const stateItem: ListItem = {
     id: STATUS_ITEM_ID,

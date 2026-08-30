@@ -130,7 +130,7 @@ describe("ShoppingConfigService", () => {
     const storage = new MemoryStorageService();
     const service = new ShoppingConfigService(storage);
 
-    await expect(service.addEditableItem("   ")).rejects.toThrow("Todo-Titel darf nicht leer sein.");
+    await expect(service.addEditableItem("   ")).rejects.toThrow("The todo title cannot be empty.");
   });
 
   it("throws when storage refuses to persist data", async () => {
@@ -140,6 +140,6 @@ describe("ShoppingConfigService", () => {
 
     await expect(
       service.saveEditableItems([{ id: "milk", title: "Milch", done: false, position: 0 }])
-    ).rejects.toThrow("Shopping-Konfiguration konnte nicht gespeichert werden.");
+    ).rejects.toThrow("Unable to save the shopping configuration.");
   });
 });

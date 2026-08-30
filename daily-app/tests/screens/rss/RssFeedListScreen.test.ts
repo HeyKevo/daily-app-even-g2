@@ -15,8 +15,8 @@ describe("RssFeedListScreen", () => {
 
     const firstPage = screen.getViewModel();
     expect(readListLabels(firstPage)).toHaveLength(20);
-    expect(readListLabels(firstPage).at(0)).toBe("Eintrag 1");
-    expect(readListLabels(firstPage).at(-1)).toBe("[Naechste Seite]");
+    expect(readListLabels(firstPage).at(0)).toBe("Item 1");
+    expect(readListLabels(firstPage).at(-1)).toBe("[Next page]");
     expect(readPageStatus(firstPage)).toBe("1/2");
 
     screen.onInput({
@@ -25,8 +25,8 @@ describe("RssFeedListScreen", () => {
     });
 
     const secondPage = screen.getViewModel();
-    expect(readListLabels(secondPage).at(0)).toBe("[Zurueck]");
-    expect(readListLabels(secondPage).at(1)).toBe("Eintrag 20");
+    expect(readListLabels(secondPage).at(0)).toBe("[Previous page]");
+    expect(readListLabels(secondPage).at(1)).toBe("Item 20");
     expect(readPageStatus(secondPage)).toBe("2/2");
 
     screen.onInput({
@@ -44,7 +44,7 @@ describe("RssFeedListScreen", () => {
     expect(readPageStatus(screen.getViewModel())).toBe("1/2");
   });
 
-  it("uses top-row selection after page switch so click without payload triggers [Zurueck]", async () => {
+  it("uses top-row selection after page switch so click without payload triggers [Previous page]", async () => {
     const list = createList(25);
     const dataService = createDataService(list);
     const router = createRouter();
@@ -99,10 +99,10 @@ describe("RssFeedListScreen", () => {
   it("keeps detail opening behavior for regular RSS rows", async () => {
     const dataService = createDataService({
       id: "rss",
-      title: "RSS-Feeds",
+      title: "RSS Feeds",
       items: [
-        { id: "a", label: "Eintrag A" },
-        { id: "b", label: "Eintrag B" },
+        { id: "a", label: "Item A" },
+        { id: "b", label: "Item B" },
       ],
     });
     const router = createRouter();
@@ -119,7 +119,7 @@ describe("RssFeedListScreen", () => {
   it("renders error status as single row with stable page status", async () => {
     const dataService = createDataService({
       id: "rss",
-      title: "RSS-Feeds",
+      title: "RSS Feeds",
       items: [],
     });
     dataService.refreshList.mockRejectedValue(new Error("offline"));
@@ -130,7 +130,7 @@ describe("RssFeedListScreen", () => {
     await flushAsync();
 
     const viewModel = screen.getViewModel();
-    expect(readListLabels(viewModel)).toEqual(["Fehler: offline"]);
+    expect(readListLabels(viewModel)).toEqual(["Error: offline"]);
     expect(readPageStatus(viewModel)).toBe("1/1");
 
     screen.onInput({ type: "Click" });
@@ -142,10 +142,10 @@ describe("RssFeedListScreen", () => {
 function createList(count: number): ListData {
   return {
     id: "rss",
-    title: "RSS-Feeds",
+    title: "RSS Feeds",
     items: Array.from({ length: count }, (_, index) => ({
       id: `item-${index + 1}`,
-      label: `Eintrag ${index + 1}`,
+      label: `Item ${index + 1}`,
     })),
   };
 }

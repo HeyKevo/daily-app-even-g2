@@ -15,7 +15,7 @@ export class RssAppDataService implements DataService {
   private shoppingItems: EditableShoppingItem[] = [];
   private launchSource: string | null = null;
   private userName: string | null = null;
-  private deviceStatusText = "G2: Status unbekannt";
+  private deviceStatusText = "G2: status unknown";
   constructor(
     private readonly rssConfigService: RssConfigService,
     private readonly shoppingConfigService: ShoppingConfigService
@@ -26,15 +26,15 @@ export class RssAppDataService implements DataService {
     items: [
       {
         id: "dashboard-rss",
-        label: "RSS-Feeds",
+        label: "RSS Feeds",
         listId: RSS_LIST_ID,
-        description: "Aktuelle Meldungen aus konfigurierten RSS-Feeds lesen.",
+        description: "Read the latest stories from your configured RSS feeds.",
       },
       {
         id: "dashboard-shopping-list",
         label: "Shopping List",
         listId: SHOPPING_LIST_ID,
-        description: "Offene Einkaeufe abhaken und erledigte Eintraege pruefen.",
+        description: "Check off open items and review what is already done.",
       },
     ],
   };
@@ -49,7 +49,7 @@ export class RssAppDataService implements DataService {
 
   setDeviceInfo(info: EvenHubDeviceInfo | null): void {
     if (!info) {
-      this.deviceStatusText = "G2: nicht verbunden";
+      this.deviceStatusText = "G2: not connected";
       return;
     }
 
@@ -72,7 +72,7 @@ export class RssAppDataService implements DataService {
 
     const feeds = await this.rssConfigService.loadRuntimeFeeds();
     if (feeds.length === 0) {
-      throw new Error("Keine gueltigen RSS-Feeds konfiguriert.");
+      throw new Error("No valid RSS feeds configured.");
     }
 
     const responses = await Promise.allSettled(
@@ -103,11 +103,11 @@ export class RssAppDataService implements DataService {
     }
 
     if (this.rssItems.length > 0) {
-      throw new Error("RSS-Feeds sind nicht erreichbar. Letzter Stand bleibt sichtbar.");
+      throw new Error("RSS feeds are unreachable. Showing the last update.");
     }
 
     const detail = failedFeeds.length > 0 ? ` Details: ${failedFeeds.join(" | ")}` : "";
-    throw new Error(`RSS-Feeds konnten nicht geladen werden.${detail}`);
+    throw new Error(`Unable to load RSS feeds.${detail}`);
   }
 
   getDashboard(): DashboardData {
@@ -144,7 +144,7 @@ export class RssAppDataService implements DataService {
             label: `[ ] ${item.title}`,
           })),
           ...(hasDivider
-            ? [{ id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" }]
+            ? [{ id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" }]
             : []),
           ...doneItems.map((item) => ({
             id: item.id,
@@ -157,14 +157,14 @@ export class RssAppDataService implements DataService {
     if (listId !== RSS_LIST_ID) {
       return {
         id: listId,
-        title: "Liste",
+        title: "List",
         items: [],
       };
     }
 
     return {
       id: RSS_LIST_ID,
-      title: "RSS-Feeds",
+      title: "RSS Feeds",
       items: this.rssItems.map((item) => ({
         id: item.id,
         label: `${item.title} - ${item.snippet}`,
@@ -200,9 +200,9 @@ export class RssAppDataService implements DataService {
     if (!item) {
       return {
         id: itemId,
-        title: "Eintrag nicht gefunden",
-        description: "Der RSS-Eintrag ist nicht mehr verfuegbar.",
-        pages: ["Der RSS-Eintrag ist nicht mehr verfuegbar."],
+        title: "Item not found",
+        description: "This RSS item is no longer available.",
+        pages: ["This RSS item is no longer available."],
         source: "RSS",
       };
     }
@@ -210,7 +210,8 @@ export class RssAppDataService implements DataService {
     return {
       id: item.id,
       title: item.title,
-      description: item.description,
+      // The detail screen reads the full article body, not the short list summary.
+      description: item.content,
       pages: item.pages,
       source: item.source,
       link: item.link,
@@ -234,12 +235,12 @@ export class RssAppDataService implements DataService {
 
 function formatDeviceStatus(status: EvenHubDeviceStatus | undefined, model = "G2"): string {
   if (!status) {
-    return `${model.toUpperCase()}: Status unbekannt`;
+    return `${model.toUpperCase()}: status unknown`;
   }
 
   const battery = typeof status.batteryLevel === "number" ? ` ${status.batteryLevel}%` : "";
-  const wearing = status.isWearing === undefined ? "" : status.isWearing ? " getragen" : " nicht getragen";
-  const charging = status.isCharging ? " laedt" : "";
+  const wearing = status.isWearing === undefined ? "" : status.isWearing ? " worn" : " not worn";
+  const charging = status.isCharging ? " charging" : "";
   return `${model.toUpperCase()}: ${status.connectType}${battery}${wearing}${charging}`;
 }
 
@@ -291,7 +292,7 @@ async function fetchFeedXml(url: string): Promise<string> {
     }
     if (!import.meta.env.DEV) {
       throw new Error(
-        `${readErrorMessage(directError)} (CORS-Block, Proxy-Fallback nur in DEV verfuegbar)`
+        `${readErrorMessage(directError)} (blocked by CORS, proxy fallback is available in DEV only)`
       );
     }
 
@@ -300,7 +301,7 @@ async function fetchFeedXml(url: string): Promise<string> {
       return await fetchXml(proxiedUrl);
     } catch (proxyError) {
       throw new Error(
-        `${readErrorMessage(directError)}; Proxy-Fallback fehlgeschlagen: ${readErrorMessage(proxyError)}`
+        `${readErrorMessage(directError)}; proxy fallback failed: ${readErrorMessage(proxyError)}`
       );
     }
   }

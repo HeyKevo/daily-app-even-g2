@@ -22,7 +22,7 @@ describe("RssAppDataService shopping list", () => {
       isWearing: true,
     });
 
-    expect(service.getDashboard().statusLine).toBe("G2: connected 84% getragen | Start: glassesMenu | User: Ada");
+    expect(service.getDashboard().statusLine).toBe("G2: connected 84% worn | Start: glassesMenu | User: Ada");
   });
 
   it("loads shopping list entries from shopping config service", async () => {
@@ -44,7 +44,7 @@ describe("RssAppDataService shopping list", () => {
     expect(list.items).toEqual([
       { id: "milk", label: "[ ] Milch" },
       { id: "eggs", label: "[ ] Eier" },
-      { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+      { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
       { id: "soap", label: "[x] Seife" },
     ]);
     expect(shoppingConfigService.loadEditableItems).toHaveBeenCalledTimes(1);
@@ -79,7 +79,7 @@ describe("RssAppDataService shopping list", () => {
     const list = service.getList(SHOPPING_LIST_ID);
     expect(list.items).toEqual([
       { id: "bread", label: "[ ] Brot" },
-      { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Erledigt --------" },
+      { id: SHOPPING_DIVIDER_ITEM_ID, label: "-------- Done --------" },
       { id: "milk", label: "[x] Milch" },
     ]);
     expect(loadEditableItems).toHaveBeenCalledTimes(2);

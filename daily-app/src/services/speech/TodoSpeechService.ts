@@ -66,24 +66,24 @@ export class SdkTodoSpeechService implements TodoSpeechService {
     options.onSnapshot({
       status: "starting",
       transcript: "",
-      message: "Mikrofon wird gestartet...",
+      message: "Starting microphone...",
     });
 
     const microphoneStarted = await this.bridge.audioControl(true);
     if (!microphoneStarted) {
-      throw new Error("G2-Mikrofon konnte nicht gestartet werden.");
+      throw new Error("Unable to start the G2 microphone.");
     }
 
     const Recognition = this.speechRecognitionFactory();
     if (!Recognition) {
       await this.bridge.audioControl(false);
-      throw new Error("Spracherkennung ist in dieser WebView nicht verfuegbar.");
+      throw new Error("Voice input is not available in this WebView.");
     }
 
     const recognition = new Recognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "de-DE";
+    recognition.lang = "en-US";
 
     let stopped = false;
     let finalText = "";
@@ -99,7 +99,7 @@ export class SdkTodoSpeechService implements TodoSpeechService {
 
     this.bridge.onAudioChunk((chunk) => {
       if (chunk.length > 0) {
-        publishSnapshot("hearing", "Audio wird empfangen...");
+        publishSnapshot("hearing", "Receiving audio...");
       }
     });
 
@@ -121,7 +121,7 @@ export class SdkTodoSpeechService implements TodoSpeechService {
 
       const combined = `${finalText} ${interimText}`.trim();
       if (combined) {
-        publishSnapshot(finalText ? "recognized" : "listening", "Todo erkannt. Click speichert.");
+        publishSnapshot(finalText ? "recognized" : "listening", "Todo recognized. Click to save.");
       }
 
       if (finalText) {
@@ -130,17 +130,17 @@ export class SdkTodoSpeechService implements TodoSpeechService {
     };
 
     recognition.onerror = (event) => {
-      const message = event.message || event.error || "Spracherkennung fehlgeschlagen.";
+      const message = event.message || event.error || "Voice input failed.";
       options.onError(new Error(message));
     };
     recognition.onend = () => {
       if (!stopped) {
-        publishSnapshot("listening", "Spracherkennung wartet...");
+        publishSnapshot("listening", "Waiting for speech...");
       }
     };
 
     recognition.start();
-    publishSnapshot("listening", "Sprich das neue Todo ein.");
+    publishSnapshot("listening", "Say the new todo.");
 
     return {
       stop: async () => {

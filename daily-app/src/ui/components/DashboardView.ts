@@ -33,23 +33,23 @@ function buildDashboardInfoModel(content: string): TextViewModel {
 
 function readDescription(dashboard: DashboardData, selectedIndex: number): string {
   if (dashboard.items.length === 0) {
-    return "Keine Menuepunkte verfuegbar.";
+    return "No menu items available.";
   }
 
   const safeIndex = clampIndex(selectedIndex, dashboard.items.length);
   const selectedItem = dashboard.items[safeIndex];
   if (!selectedItem) {
-    return "Keine Menuepunkte verfuegbar.";
+    return "No menu items available.";
   }
 
-  const description = selectedItem.description?.trim() || "Keine Kurzbeschreibung verfuegbar.";
+  const description = selectedItem.description?.trim() || "No description available.";
   const status = dashboard.statusLine?.trim();
   const content = status
     ? [selectedItem.label, "", description, "", status].join("\n")
     : [selectedItem.label, "", description].join("\n");
   return content.length <= MAX_INFO_CONTENT_LENGTH
     ? content
-    : `${content.slice(0, MAX_INFO_CONTENT_LENGTH - 12)}\n\n[gekuerzt]`;
+    : `${content.slice(0, MAX_INFO_CONTENT_LENGTH - 12)}\n\n[truncated]`;
 }
 
 function clampIndex(selectedIndex: number, count: number): number {
@@ -74,7 +74,7 @@ export function buildDashboardViewModel(
     ? dashboard.items
         .slice(0, 2)
         .map((item, index) => buildDashboardMenuItemModel(item.label, index, safeSelectedIndex))
-    : [buildDashboardMenuItemModel("Keine Menuepunkte", 0, 0)];
+    : [buildDashboardMenuItemModel("No menu items", 0, 0)];
 
   return {
     title: dashboard.title,

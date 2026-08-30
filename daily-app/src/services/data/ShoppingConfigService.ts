@@ -62,7 +62,7 @@ export class ShoppingConfigService {
   async addEditableItem(title: string): Promise<EditableShoppingItem> {
     const normalizedTitle = title.trim();
     if (!normalizedTitle) {
-      throw new Error("Todo-Titel darf nicht leer sein.");
+      throw new Error("The todo title cannot be empty.");
     }
 
     const items = await this.loadEditableItems();
@@ -87,7 +87,7 @@ export class ShoppingConfigService {
     });
     const ok = await this.storage.set(SHOPPING_STORAGE_KEY, payload);
     if (!ok) {
-      throw new Error("Shopping-Konfiguration konnte nicht gespeichert werden.");
+      throw new Error("Unable to save the shopping configuration.");
     }
   }
 }
