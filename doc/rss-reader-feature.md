@@ -1,137 +1,157 @@
-# RSS-Reader Feature
+# RSS Reader Feature
 
-## 1. Ziel und Scope
-Das Feature erweitert die Daily App um einen RSS-Reader fuer EvenHub.
+## 1. Goal and scope
+The feature adds an RSS reader for EvenHub to the Daily App.
 
-Enthalten:
-- Dashboard mit Button-Liste (zunaechst ein Eintrag: `RSS-Feeds`)
-- RSS-Liste mit Eintraegen aus konfigurierten Feeds
-- RSS-Detailansicht mit kompletter Beschreibung und Autoscroll
+Included:
+- Dashboard with a button list (`RSS Feeds`, `Shopping List`)
+- RSS list with entries from the configured feeds
+- RSS detail view with the full article body, manual paging and auto scroll
 
-Nicht enthalten:
-- Oeffnen externer Artikel-Links im Browser
-- Interaktive Aktionen pro RSS-Eintrag (kein Actions-Overlay)
-- Persistente lokale Speicherung ueber den Laufzeit-Cache hinaus
+Not included:
+- Opening external article links in a browser
+- Interactive per-entry actions (no actions overlay)
+- Persistent local storage beyond the runtime cache
 
-## 2. User-Flow
-1. App startet im Dashboard.
-2. `Click` auf `RSS-Feeds` oeffnet die RSS-Liste.
-3. In der RSS-Liste wird per `Click` ein Eintrag in der Detailansicht geoeffnet.
-4. `DoubleClick` in der Detailansicht geht zur RSS-Liste zurueck.
+## 2. User flow
+1. The app starts on the dashboard.
+2. `Click` on `RSS Feeds` opens the RSS list.
+3. In the RSS list, `Click` opens the selected entry in the detail view.
+4. `DoubleClick` in the detail view returns to the RSS list.
 
-Input-Mapping:
+Input mapping:
 - `Click`
-  - Dashboard: Oeffnet ausgewaehlten Dashboard-Button (`RSS-Feeds`)
-  - RSS-Liste: Oeffnet ausgewaehlten RSS-Eintrag
-  - RSS-Detail: Toggle fuer Autoscroll (Start/Stop)
+  - Dashboard: opens the selected dashboard button
+  - RSS list: opens the selected RSS entry
+  - RSS detail: toggles auto scroll (start/stop)
 - `DoubleClick`
-  - RSS-Liste: Zurueck zum Dashboard
-  - RSS-Detail: Zurueck zur RSS-Liste
+  - RSS list: back to the dashboard
+  - RSS detail: back to the RSS list
 - `Up`
-  - Dashboard/RSS-Liste: Auswahl nach oben
-  - RSS-Detail: Vorheriger RSS-Eintrag, bei erstem Eintrag zurueck zur Liste
+  - Dashboard/RSS list: move selection up
+  - RSS detail: previous page of the current article; stays on page 1 at the top
 - `Down`
-  - Dashboard/RSS-Liste: Auswahl nach unten
-  - RSS-Detail: Naechster RSS-Eintrag, bei letztem Eintrag zurueck zur Liste
+  - Dashboard/RSS list: move selection down
+  - RSS detail: next page of the current article; stays on the last page at the end
 
-## 3. Entscheidungsliste (ADR-Stil)
-- Mehrere Feeds werden gemischt und global nach `pubDate` absteigend sortiert.
-- RSS-Daten werden beim Oeffnen der RSS-Liste neu geladen.
-- Die RSS-Liste zeigt pro Eintrag `Titel - Description-Snippet` als Einzeile.
-- `Click` in der Detailansicht ist ausschliesslich fuer Autoscroll Start/Stop reserviert.
-- `Up`/`Down` im Detail wechselt den RSS-Eintrag; an den Grenzen geht es zurueck zur RSS-Liste.
-- Der bisherige Demo-Flow (Elemente/Aktionen) wird durch den RSS-Flow ersetzt.
-- Autoscroll startet nicht automatisch, sondern nur per explizitem `Click`-Toggle.
+Long press is not delivered to the app, so the Even Realities system behavior stays untouched.
 
-## 4. Datenmodell
-Feed-Config-Schema:
+## 3. Decision list (ADR style)
+- Multiple feeds are merged and sorted globally by `pubDate`, descending.
+- RSS data is reloaded when the RSS list is opened.
+- The RSS list shows `Title - summary snippet` as a single line per entry.
+- `Click` in the detail view is reserved for auto scroll start/stop only.
+- `Up`/`Down` in the detail view pages inside the current article and never switches articles.
+- Auto scroll advances one article page every 2500 ms, stops on the final page and stays there.
+- Auto scroll never starts by itself, only through an explicit `Click` toggle.
+- Opening an article always starts on page 1; page state lives in the detail screen instance.
+
+## 4. Data model
+Feed config schema:
 - `id: string`
 - `title: string`
 - `url: string`
 - `maxEntries: number`
 
-Initiale Feed-Konfiguration:
+Initial feed configuration:
 - `Tagesschau`
 - URL: `https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml`
 - `maxEntries: 50`
 
-Internes RSS-Item-Schema:
+Internal RSS item schema:
 - `id: string`
 - `title: string`
-- `description: string` (vollstaendig, bereinigt)
-- `snippet: string` (eine Zeile fuer Listenansicht)
-- `pages: string[]` (detailseitige Segmentierung)
+- `summary: string` (short, clean text for the list)
+- `snippet: string` (one truncated line for a list row)
+- `content: string` (full readable article body)
+- `pages: string[]` (paginated `content` for the detail view)
 - `pubDateText?: string`
 - `pubDateMs: number | null`
 - `link?: string`
 - `source: string`
 
-## 5. Parsing und Normalisierung
-XML-Felder pro RSS-Item:
+## 5. Parsing and normalization
+XML fields per RSS item, in priority order:
 - `title`
-- `description` (Fallback: `content:encoded`)
-- `pubDate`
-- `link`
-- `guid`
+- article body: `content:encoded`, `content`, `dc:content`, `description`, `summary`, `subtitle`
+- list summary: `description`, `summary`, `subtitle`, `itunes:summary`
+- `pubDate` / `published` / `updated` / `dc:date`
+- `link` (Atom entries fall back to the `href` attribute of `<link rel="alternate">`)
+- `guid` / `id`
 
-Normalisierung:
-- HTML wird aus `description` entfernt.
-- Whitespace wird auf einfache Leerzeichen reduziert.
-- Listen-Snippet wird auf feste Laenge gekuerzt.
-- Volltext wird in Seiten fuer die Detailansicht segmentiert.
+Atom feeds are supported: when a document has no `<item>` elements, `<entry>` elements are used.
 
-Umgang mit fehlendem/ungueltigem Datum:
-- `pubDate` wird zu `pubDateMs` geparst.
-- Bei ungueltigem Datum: `pubDateMs = null`.
-- Sortierung: Eintraege ohne gueltiges Datum stehen hinter datierten Eintraegen.
+Normalization:
+- HTML is converted to plain text without a DOM dependency: script/style/iframe blocks,
+  images and tracking elements are dropped, block elements become paragraph breaks and
+  `<br>` becomes a line break.
+- HTML entities are decoded; typographic punctuation is folded to ASCII for the G2 font.
+- Whitespace is collapsed per line and repeated blank lines are reduced to one.
+- The list snippet is truncated to a fixed length; if a feed has no short summary the
+  snippet is derived from the article body.
+- The article body is segmented into detail pages that fit the G2 text container.
 
-## 6. UI- und SDK-Rahmenbedingungen
-EvenHub-relevante Regeln:
-- Maximal 4 Container pro Seite
-- Genau ein Container mit `isEventCapture=1`
+Handling of missing/invalid dates:
+- `pubDate` is parsed into `pubDateMs`.
+- Invalid date: `pubDateMs = null`.
+- Sorting: entries without a valid date are placed after dated entries.
 
-Containerstrategie fuer dieses Feature:
-- Dashboard: ein `ListContainer`
-- RSS-Liste: ein `ListContainer`
-- RSS-Detail: ein `TextContainer`
+## 6. UI and SDK constraints
+EvenHub rules that apply:
+- At most 4 containers per page
+- Exactly one container with `isEventCapture=1`
 
-Renderingstrategie:
-- Initial: `createStartUpPageContainer`
-- Danach: `rebuildPageContainer`
-- Text-Updates nur bei Text-Only-Layout ueber `textContainerUpgrade`
+Container strategy for this feature:
+- Dashboard: text containers in `dashboard-menu` layout
+- RSS list: one `ListContainer` plus a page status text container
+- RSS detail: title text, body text and two footer image halves
 
-## 7. Fehler- und Fallback-Verhalten
-Feed-Ladefehler:
-- Wenn bereits Cache vorhanden ist: letzte erfolgreiche RSS-Liste bleibt sichtbar.
-- Wenn kein Cache vorhanden ist: Status-/Fehlerzeile in der RSS-Liste.
+Rendering strategy:
+- Initially: `createStartUpPageContainer`
+- Afterwards: `rebuildPageContainer`
+- Text updates only for text-only layouts via `textContainerUpgrade`
 
-Parsing-Fehler:
-- Einzelne fehlerhafte Feed-Responses werden ignoriert, wenn andere Feeds erfolgreich sind.
-- Wenn keine Feed-Daten verarbeitet werden koennen, wird ein Fehlerstatus angezeigt.
+## 7. Error and fallback behavior
+Feed load errors:
+- If a cache exists: the last successful RSS list stays visible.
+- If no cache exists: a status/error row is shown in the RSS list.
 
-Verhalten mit/ohne Cache:
-- Mit Cache: stale data sichtbar, Hinweis im Listentitel.
-- Ohne Cache: keine Eintraege, stattdessen Statuszeile.
+Parsing errors:
+- Individual broken feed responses are ignored when other feeds succeed.
+- If no feed data can be processed, an error status is shown.
+- Malformed XML raises `Invalid RSS XML for <feed>` instead of crashing the parser.
 
-## 8. Testmatrix
-Happy-Path:
-1. Dashboard zeigt `RSS-Feeds`.
-2. `Click` oeffnet RSS-Liste.
-3. RSS-Liste wird beim Eintritt aktualisiert.
-4. Eintrag zeigt `Titel - Snippet`.
-5. `Click` oeffnet Detail.
-6. `Click` im Detail toggelt Autoscroll.
-7. `DoubleClick` geht zur RSS-Liste zurueck.
+Behavior with/without cache:
+- With cache: stale data visible, hint in the list title.
+- Without cache: no entries, status row instead.
 
-Navigation/Edge-Cases:
-1. `Up` im ersten Detaileintrag geht zur RSS-Liste.
-2. `Down` im letzten Detaileintrag geht zur RSS-Liste.
-3. `Up/Down` in Listenansicht bleibt innerhalb der gueltigen Grenzen.
+## 8. Test matrix
+Happy path:
+1. Dashboard shows `RSS Feeds`.
+2. `Click` opens the RSS list.
+3. The RSS list refreshes on enter.
+4. An entry shows `Title - snippet`.
+5. `Click` opens the detail view on page 1.
+6. `Click` in the detail view toggles auto scroll.
+7. `DoubleClick` returns to the RSS list.
 
-Fehlerfaelle:
-1. Netzfehler ohne Cache: Fehlerstatus in Liste.
-2. Netzfehler mit Cache: letzter Stand bleibt sichtbar.
-3. XML-Parsingfehler: Fehlerstatus, sofern kein verwertbarer Feed vorliegt.
+Navigation/edge cases:
+1. `Up` on the first detail page stays on page 1.
+2. `Down` on the last detail page stays on the last page.
+3. Auto scroll stops on the last page and does not open the next article.
+4. `Up`/`Down` in the list view stays inside the valid bounds.
 
-Build-Check:
-- `npm --prefix daily-app run build` muss erfolgreich sein.
+Parsing cases:
+1. `content:encoded` wins over a short `description`; the list keeps the short summary.
+2. Without `content:encoded` the `description` becomes the readable body.
+3. HTML markup becomes clean text with paragraph separation.
+4. Empty, missing or malformed content does not crash the parser.
+
+Error cases:
+1. Network error without cache: error status in the list.
+2. Network error with cache: last update stays visible.
+3. XML parsing error: error status when no usable feed remains.
+
+Build check:
+- `npm --prefix daily-app run build` must succeed.
+- `npm --prefix daily-app test` must succeed.

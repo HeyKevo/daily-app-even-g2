@@ -31,18 +31,18 @@ export function buildDetailViewModel(
   const activePage = detail.pages[pageIndex] ?? detail.description;
 
   const sourceLine = detail.pubDateText
-    ? `Quelle: ${detail.source} | ${detail.pubDateText}`
-    : `Quelle: ${detail.source}`;
+    ? `Source: ${detail.source} | ${detail.pubDateText}`
+    : `Source: ${detail.source}`;
 
   const titleContent = truncateText(detail.title, MAX_DETAIL_TITLE_LENGTH);
   const bodyContent = truncateText(activePage, MAX_DETAIL_BODY_LENGTH);
   const pagerContent = [
     `${pageIndex + 1}/${pageCount}`,
-    options.autoScrollEnabled ? "Auto AN" : "Auto AUS",
+    options.autoScrollEnabled ? "Auto ON" : "Auto OFF",
   ].join(" | ");
 
   return {
-    title: "RSS-Detail",
+    title: "RSS Article",
     layoutMode: "text-pager",
     containers: [
       buildTextModel(titleContent, 0, "title"),
@@ -157,6 +157,6 @@ function truncateText(text: string, maxLength = MAX_DETAIL_CONTENT_LENGTH): stri
     return text;
   }
 
-  const suffix = "\n\n[gekuerzt]";
+  const suffix = "\n\n[truncated]";
   return `${text.slice(0, maxLength - suffix.length)}${suffix}`;
 }

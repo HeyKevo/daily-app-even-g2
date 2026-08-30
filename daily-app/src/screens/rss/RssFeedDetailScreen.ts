@@ -4,6 +4,7 @@ import type { DataService } from "../../services/data/DataService";
 import type { Logger } from "../../utils/logger";
 import type { Router } from "../../navigation/router";
 import { buildDetailViewModel } from "../../ui/components/RssDetailView";
+import { clamp } from "../../utils/clamp";
 import type { ViewModel } from "../../ui/render/renderPipeline";
 
 const AUTOSCROLL_INTERVAL_MS = 2500;
@@ -15,10 +16,12 @@ export function createRssFeedDetailScreen(
   router: Router,
   requestRender: () => void
 ): Screen {
-  let currentItemId = itemId;
+  // A screen instance exists per opened article, so reading always starts on page 1.
   let pageIndex = 0;
   let autoScrollEnabled = false;
   let timerId: number | null = null;
+
+  const readPageCount = () => Math.max(1, dataService.getDetail(itemId).pages.length);
 
   const stopAutoScroll = () => {
     if (timerId !== null) {
@@ -29,24 +32,25 @@ export function createRssFeedDetailScreen(
   };
 
   const startAutoScroll = () => {
-    const detail = dataService.getDetail(currentItemId);
-    if (detail.pages.length <= 1) {
-      autoScrollEnabled = false;
-      requestRender();
+    stopAutoScroll();
+
+    if (readPageCount() <= 1) {
+      // Single page articles have nothing to advance to.
       return;
     }
 
-    stopAutoScroll();
     autoScrollEnabled = true;
     timerId = window.setInterval(() => {
-      const latest = dataService.getDetail(currentItemId);
-      if (latest.pages.length <= 1) {
+      const lastPageIndex = readPageCount() - 1;
+      if (pageIndex >= lastPageIndex) {
+        // Stop on the final page instead of wrapping or opening the next article.
         stopAutoScroll();
+        pageIndex = lastPageIndex;
         requestRender();
         return;
       }
 
-      pageIndex = (pageIndex + 1) % latest.pages.length;
+      pageIndex += 1;
       requestRender();
     }, AUTOSCROLL_INTERVAL_MS);
   };
@@ -54,29 +58,29 @@ export function createRssFeedDetailScreen(
   const toggleAutoScroll = () => {
     if (autoScrollEnabled) {
       stopAutoScroll();
-      requestRender();
-      return;
+    } else {
+      startAutoScroll();
     }
-
-    startAutoScroll();
     requestRender();
   };
 
-  const navigateToAdjacent = (direction: "up" | "down") => {
-    const adjacentItemId = dataService.getAdjacentItemId(currentItemId, direction);
-    if (!adjacentItemId) {
-      router.back();
+  const goToPage = (direction: "previous" | "next") => {
+    const lastPageIndex = readPageCount() - 1;
+    const nextPageIndex = clamp(pageIndex + (direction === "next" ? 1 : -1), 0, lastPageIndex);
+    if (nextPageIndex === pageIndex) {
+      // Stay inside the article at the first and last page.
       return;
     }
 
-    currentItemId = adjacentItemId;
-    pageIndex = 0;
+    pageIndex = nextPageIndex;
+    logger.debug(`Detail page -> ${pageIndex + 1}/${lastPageIndex + 1}`);
     requestRender();
   };
 
   return {
     id: `detail:${itemId}`,
     onEnter() {
+      pageIndex = 0;
       logger.info(`Enter Detail ${itemId}`);
     },
     onExit() {
@@ -89,11 +93,11 @@ export function createRssFeedDetailScreen(
       }
 
       if (event.type === "Up") {
-        navigateToAdjacent("up");
+        goToPage("previous");
       }
 
       if (event.type === "Down") {
-        navigateToAdjacent("down");
+        goToPage("next");
       }
 
       if (event.type === "DoubleClick") {
@@ -101,11 +105,9 @@ export function createRssFeedDetailScreen(
       }
     },
     getViewModel(): ViewModel {
-      const detail = dataService.getDetail(currentItemId);
-      const pageCount = Math.max(1, detail.pages.length);
-      if (pageIndex >= pageCount) {
-        pageIndex = 0;
-      }
+      const detail = dataService.getDetail(itemId);
+      const lastPageIndex = Math.max(1, detail.pages.length) - 1;
+      pageIndex = clamp(pageIndex, 0, lastPageIndex);
 
       return buildDetailViewModel(detail, { pageIndex, autoScrollEnabled });
     },

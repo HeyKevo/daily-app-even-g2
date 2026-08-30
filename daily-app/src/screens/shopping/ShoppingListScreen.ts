@@ -30,7 +30,7 @@ export function createShoppingListScreen(
   let speechSnapshot: TodoSpeechSnapshot = {
     status: "starting",
     transcript: "",
-    message: "Spracherkennung bereit.",
+    message: "Voice input ready.",
   };
   let isSavingSpeechTodo = false;
 
@@ -53,7 +53,7 @@ export function createShoppingListScreen(
       if (sequence !== refreshSequence) {
         return;
       }
-      loadError = error instanceof Error ? error.message : "Unbekannter Shopping-Fehler";
+      loadError = error instanceof Error ? error.message : "Unknown shopping list error";
     } finally {
       if (sequence !== refreshSequence) {
         return;
@@ -81,7 +81,7 @@ export function createShoppingListScreen(
       await dataService.toggleShoppingItem(item.id);
       loadError = null;
     } catch (error) {
-      loadError = error instanceof Error ? error.message : "Shopping-Eintrag konnte nicht aktualisiert werden.";
+      loadError = error instanceof Error ? error.message : "Unable to update this item.";
     }
 
     const nextList = dataService.getList(listId);
@@ -105,7 +105,7 @@ export function createShoppingListScreen(
     speechSnapshot = {
       status: "starting",
       transcript: "",
-      message: "Spracherkennung wird gestartet...",
+      message: "Starting voice input...",
     };
     requestRender();
 
@@ -132,7 +132,7 @@ export function createShoppingListScreen(
       speechSnapshot = {
         status: "error",
         transcript: "",
-        message: error instanceof Error ? error.message : "Spracherkennung konnte nicht gestartet werden.",
+        message: error instanceof Error ? error.message : "Unable to start voice input.",
       };
       requestRender();
     }
@@ -148,7 +148,7 @@ export function createShoppingListScreen(
     speechSnapshot = {
       status: "recognized",
       transcript: title,
-      message: "Todo wird gespeichert...",
+      message: "Saving todo...",
     };
     requestRender();
 
@@ -164,7 +164,7 @@ export function createShoppingListScreen(
       speechSnapshot = {
         status: "error",
         transcript: title,
-        message: error instanceof Error ? error.message : "Todo konnte nicht gespeichert werden.",
+        message: error instanceof Error ? error.message : "Unable to save the todo.",
       };
     } finally {
       isSavingSpeechTodo = false;
@@ -326,21 +326,21 @@ function isImplicitClickSelectionUpdate(
 function withStatusState(list: ListData, isLoading: boolean, loadError: string | null): ListData {
   if (list.items.length > 0) {
     if (isLoading) {
-      return { ...list, title: `${list.title} (laedt...)` };
+      return { ...list, title: `${list.title} (loading...)` };
     }
 
     if (loadError) {
-      return { ...list, title: `${list.title} (letzter Stand)` };
+      return { ...list, title: `${list.title} (last update)` };
     }
 
     return list;
   }
 
   const message = isLoading
-    ? "Shopping-Liste wird geladen..."
+    ? "Loading shopping list..."
     : loadError
-      ? `Fehler: ${loadError}`
-      : "Keine Shopping-Eintraege vorhanden.";
+      ? `Error: ${loadError}`
+      : "No shopping items yet.";
 
   return {
     ...list,
@@ -356,23 +356,23 @@ function withAddTodoAction(list: ListData, isEnabled: boolean): ListData {
   return {
     ...list,
     items: [
-      { id: ADD_TODO_ITEM_ID, label: "+ Neues Todo sprechen" },
+      { id: ADD_TODO_ITEM_ID, label: "+ Add todo by voice" },
       ...list.items,
     ],
   };
 }
 
 function buildSpeechTodoViewModel(snapshot: TodoSpeechSnapshot): ViewModel {
-  const transcript = snapshot.transcript.trim() || "(noch kein Text)";
+  const transcript = snapshot.transcript.trim() || "(nothing heard yet)";
   return {
-    title: "Neues Todo",
+    title: "New Todo",
     containers: [
       {
         type: "text",
         id: "speech-todo",
         eventCapture: 1,
         content: [
-          "Neues Todo",
+          "New Todo",
           "",
           snapshot.message,
           "",

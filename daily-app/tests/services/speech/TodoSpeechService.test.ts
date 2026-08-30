@@ -70,7 +70,7 @@ describe("SdkTodoSpeechService", () => {
         onFinalText: vi.fn(),
         onError: vi.fn(),
       })
-    ).rejects.toThrow("Spracherkennung ist in dieser WebView nicht verfuegbar.");
+    ).rejects.toThrow("Voice input is not available in this WebView.");
 
     expect(bridge.audioControl).toHaveBeenCalledWith(true);
     expect(bridge.audioControl).toHaveBeenLastCalledWith(false);

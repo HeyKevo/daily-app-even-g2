@@ -43,7 +43,7 @@ const app = requireElement<HTMLDivElement>("#app");
 app.innerHTML = `
   <div class="card">
     <h1>Daily App</h1>
-    <p>RSS- und Shopping-Daten fuer die Glaeser konfigurieren.</p>
+    <p>Configure the RSS and shopping data shown on the glasses.</p>
   </div>
   <div class="card">
     <div class="card-head">
@@ -53,8 +53,8 @@ app.innerHTML = `
     <p id="rss-config-feedback" class="feedback"></p>
     <div id="feed-list" class="feed-list"></div>
     <div class="actions">
-      <button id="add-feed" type="button">Feed hinzufuegen</button>
-      <button id="save-feeds" type="button">Speichern</button>
+      <button id="add-feed" type="button">Add feed</button>
+      <button id="save-feeds" type="button">Save</button>
     </div>
   </div>
   <div class="card">
@@ -65,10 +65,10 @@ app.innerHTML = `
     <p id="shopping-config-feedback" class="feedback"></p>
     <div id="shopping-list" class="feed-list"></div>
     <div class="actions">
-      <button id="add-shopping-item" type="button">Todo hinzufuegen</button>
-      <button id="save-shopping-items" type="button">Speichern</button>
+      <button id="add-shopping-item" type="button">Add todo</button>
+      <button id="save-shopping-items" type="button">Save</button>
       <button id="load-shopping-external" type="button" disabled>
-        Offene Todos aus externer Quelle laden
+        Load open todos from an external source
       </button>
     </div>
   </div>
@@ -169,12 +169,12 @@ saveFeedsButton.addEventListener("click", async () => {
     feeds = persisted.map((feed) => ({ ...feed }));
     feedErrors = feeds.map(() => ({}));
     setBadgeStatus(rssStatusEl, "storage: saved", "ok");
-    setSectionFeedback(rssFeedbackEl, "RSS-Konfiguration gespeichert.", "ok");
+    setSectionFeedback(rssFeedbackEl, "RSS configuration saved.", "ok");
     renderFeeds();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setBadgeStatus(rssStatusEl, "storage: error", "error");
-    setSectionFeedback(rssFeedbackEl, `Speichern fehlgeschlagen: ${message}`, "error");
+    setSectionFeedback(rssFeedbackEl, `Save failed: ${message}`, "error");
   } finally {
     setRssBusy(false);
   }
@@ -267,12 +267,12 @@ saveShoppingItemsButton.addEventListener("click", async () => {
     }));
     shoppingErrors = shoppingDrafts.map(() => ({}));
     setBadgeStatus(shoppingStatusEl, "storage: saved", "ok");
-    setSectionFeedback(shoppingFeedbackEl, "Shopping-Konfiguration gespeichert.", "ok");
+    setSectionFeedback(shoppingFeedbackEl, "Shopping configuration saved.", "ok");
     renderShoppingItems();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setBadgeStatus(shoppingStatusEl, "storage: error", "error");
-    setSectionFeedback(shoppingFeedbackEl, `Speichern fehlgeschlagen: ${message}`, "error");
+    setSectionFeedback(shoppingFeedbackEl, `Save failed: ${message}`, "error");
   } finally {
     setShoppingBusy(false);
   }
@@ -296,7 +296,7 @@ async function loadRssConfig(): Promise<void> {
     feeds = [createEmptyFeed()];
     feedErrors = [{}];
     setBadgeStatus(rssStatusEl, "storage: error", "error");
-    setSectionFeedback(rssFeedbackEl, `Konfiguration konnte nicht geladen werden: ${message}`, "error");
+    setSectionFeedback(rssFeedbackEl, `Unable to load the configuration: ${message}`, "error");
   } finally {
     setRssBusy(false);
     renderFeeds();
@@ -324,7 +324,7 @@ async function loadShoppingConfig(): Promise<void> {
     setBadgeStatus(shoppingStatusEl, "storage: error", "error");
     setSectionFeedback(
       shoppingFeedbackEl,
-      `Shopping-Konfiguration konnte nicht geladen werden: ${message}`,
+      `Unable to load the shopping configuration: ${message}`,
       "error"
     );
   } finally {
@@ -352,17 +352,17 @@ function renderFeeds(): void {
         <button type="button" class="danger" data-action="delete-feed" data-index="${index}" ${
           isRssBusy ? "disabled" : ""
         }>
-          Loeschen
+          Delete
         </button>
       </div>
-      <label class="field-label" for="feed-title-${index}">Titel</label>
+      <label class="field-label" for="feed-title-${index}">Title</label>
       <input
         id="feed-title-${index}"
         type="text"
         data-index="${index}"
         data-field="title"
         value="${escapeHtml(feed.title)}"
-        placeholder="z. B. Tagesschau"
+        placeholder="e.g. Ars Technica"
         ${isRssBusy ? "disabled" : ""}
       />
       <p class="validation-error">${errors.title ?? ""}</p>
@@ -388,7 +388,7 @@ function renderShoppingItems(): void {
   if (shoppingDrafts.length === 0) {
     const hint = document.createElement("p");
     hint.className = "empty-state";
-    hint.textContent = "Noch keine Shopping-Eintraege konfiguriert.";
+    hint.textContent = "No shopping items configured yet.";
     shoppingListEl.appendChild(hint);
     return;
   }
@@ -404,17 +404,17 @@ function renderShoppingItems(): void {
         <button type="button" class="danger" data-action="delete-shopping-item" data-index="${index}" ${
           isShoppingBusy ? "disabled" : ""
         }>
-          Loeschen
+          Delete
         </button>
       </div>
-      <label class="field-label" for="shopping-title-${index}">Titel</label>
+      <label class="field-label" for="shopping-title-${index}">Title</label>
       <input
         id="shopping-title-${index}"
         type="text"
         data-index="${index}"
         data-field="title"
         value="${escapeHtml(item.title)}"
-        placeholder="z. B. Milch"
+        placeholder="e.g. Milk"
         ${isShoppingBusy ? "disabled" : ""}
       />
       <p class="validation-error">${errors.title ?? ""}</p>
@@ -425,8 +425,8 @@ function renderShoppingItems(): void {
         data-field="done"
         ${isShoppingBusy ? "disabled" : ""}
       >
-        <option value="open" ${item.done ? "" : "selected"}>offen</option>
-        <option value="done" ${item.done ? "selected" : ""}>erledigt</option>
+        <option value="open" ${item.done ? "" : "selected"}>open</option>
+        <option value="done" ${item.done ? "selected" : ""}>done</option>
       </select>
     `;
     shoppingListEl.appendChild(row);
@@ -443,12 +443,12 @@ function validateFeeds(drafts: FeedDraft[]): FeedValidationResult {
     const url = draft.url.trim();
 
     if (!title) {
-      nextErrors[index].title = "Titel ist erforderlich.";
+      nextErrors[index].title = "Title is required.";
     }
     if (!url) {
-      nextErrors[index].url = "URL ist erforderlich.";
+      nextErrors[index].url = "URL is required.";
     } else if (!isValidHttpUrl(url)) {
-      nextErrors[index].url = "URL muss mit http:// oder https:// beginnen.";
+      nextErrors[index].url = "The URL must start with http:// or https://.";
     }
 
     if (nextErrors[index].title || nextErrors[index].url) {
@@ -466,7 +466,7 @@ function validateFeeds(drafts: FeedDraft[]): FeedValidationResult {
     return {
       feeds: [],
       errors: nextErrors,
-      formError: "Mindestens ein gueltiger Feed ist erforderlich.",
+      formError: "At least one valid feed is required.",
     };
   }
 
@@ -474,7 +474,7 @@ function validateFeeds(drafts: FeedDraft[]): FeedValidationResult {
     return {
       feeds: validFeeds,
       errors: nextErrors,
-      formError: "Bitte markierte Eingaben korrigieren.",
+      formError: "Please correct the highlighted fields.",
     };
   }
 
@@ -493,7 +493,7 @@ function validateShoppingItems(drafts: ShoppingDraft[]): ShoppingValidationResul
     const draft = drafts[index];
     const title = draft.title.trim();
     if (!title) {
-      nextErrors[index].title = "Titel ist erforderlich.";
+      nextErrors[index].title = "Title is required.";
       continue;
     }
 
@@ -509,7 +509,7 @@ function validateShoppingItems(drafts: ShoppingDraft[]): ShoppingValidationResul
     return {
       items: validItems,
       errors: nextErrors,
-      formError: "Bitte markierte Eingaben korrigieren.",
+      formError: "Please correct the highlighted fields.",
     };
   }
 

@@ -14,7 +14,7 @@ const MAX_TEXT_CONTAINER_COUNT = 8;
 const MAX_IMAGE_CONTAINER_COUNT = 4;
 const MAX_TOTAL_CONTAINER_COUNT = 12;
 const VISIBLE_BORDER_COLOR = 15;
-const EMPTY_LIST_PLACEHOLDER = "Keine Eintraege verfuegbar.";
+const EMPTY_LIST_PLACEHOLDER = "No items available.";
 const textEncoder = new TextEncoder();
 
 export interface LayoutPayload {

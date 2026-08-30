@@ -6,10 +6,10 @@ describe("buildRssFeedListViewModel", () => {
   it("creates list container plus footer page status", () => {
     const list: ListData = {
       id: "rss",
-      title: "RSS-Feeds",
+      title: "RSS Feeds",
       items: [
-        { id: "a", label: "Eintrag A" },
-        { id: "b", label: "Eintrag B" },
+        { id: "a", label: "Item A" },
+        { id: "b", label: "Item B" },
       ],
     };
 
@@ -24,8 +24,8 @@ describe("buildRssFeedListViewModel", () => {
     expect(listContainer).toMatchObject({
       type: "list",
       id: "rss-list",
-      title: "RSS-Feeds",
-      items: ["Eintrag A", "Eintrag B"],
+      title: "RSS Feeds",
+      items: ["Item A", "Item B"],
       selectedIndex: 1,
       eventCapture: 1,
     });

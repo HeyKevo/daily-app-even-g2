@@ -34,15 +34,15 @@ import { resolveDashboardSelection } from "../../../src/screens/dashboard/resolv
 const dashboardItems: DashboardItem[] = [
   {
     id: "dashboard-rss",
-    label: "RSS-Feeds",
+    label: "RSS Feeds",
     listId: RSS_LIST_ID,
-    description: "RSS-Beschreibung",
+    description: "RSS description",
   },
   {
     id: "dashboard-shopping-list",
     label: "Shopping List",
     listId: SHOPPING_LIST_ID,
-    description: "Shopping-Beschreibung",
+    description: "Shopping description",
   },
 ];
 
@@ -174,7 +174,7 @@ describe("DashboardScreen integration", () => {
     expect(viewModel.containers[1]).toMatchObject({
       type: "text",
       id: "dashboard-menu-item-0-selected",
-      content: "RSS-Feeds",
+      content: "RSS Feeds",
       eventCapture: 0,
     });
     expect(viewModel.containers[2]).toMatchObject({
@@ -187,7 +187,7 @@ describe("DashboardScreen integration", () => {
     if (!infoContainer || infoContainer.type !== "text") {
       throw new Error("Expected text info container");
     }
-    expect(infoContainer.content).toContain("RSS-Beschreibung");
+    expect(infoContainer.content).toContain("RSS description");
   });
 
   it("renders runtime status line in dashboard info", () => {
@@ -228,7 +228,7 @@ describe("DashboardScreen integration", () => {
     if (!infoContainer || infoContainer.type !== "text") {
       throw new Error("Expected text info container");
     }
-    expect(infoContainer.content).toContain("Shopping-Beschreibung");
+    expect(infoContainer.content).toContain("Shopping description");
   });
 
   it("logs marked item on down navigation", () => {
@@ -249,7 +249,7 @@ describe("DashboardScreen integration", () => {
     screen.onInput(upEvent);
 
     expect(debug).toHaveBeenCalledWith(
-      expect.stringContaining("Dashboard Up marked -> index:0 item:dashboard-rss|RSS-Feeds|list:rss")
+      expect.stringContaining("Dashboard Up marked -> index:0 item:dashboard-rss|RSS Feeds|list:rss")
     );
   });
 
@@ -278,7 +278,7 @@ describe("DashboardScreen integration", () => {
       throw new Error("Expected text info container");
     }
 
-    expect(infoContainer.content).toContain("Shopping-Beschreibung");
+    expect(infoContainer.content).toContain("Shopping description");
     expect(toList).toHaveBeenCalledWith(SHOPPING_LIST_ID);
     expect(debug).toHaveBeenCalledWith(
       expect.stringContaining(
@@ -304,7 +304,7 @@ describe("DashboardScreen integration", () => {
 
     expect(toList).toHaveBeenLastCalledWith(RSS_LIST_ID);
     expect(debug).toHaveBeenCalledWith(
-      expect.stringContaining("Dashboard selection reset -> index:0 item:dashboard-rss|RSS-Feeds|list:rss")
+      expect.stringContaining("Dashboard selection reset -> index:0 item:dashboard-rss|RSS Feeds|list:rss")
     );
   });
 
@@ -324,7 +324,7 @@ describe("DashboardScreen integration", () => {
       throw new Error("Expected text info container");
     }
 
-    expect(infoContainer.content).toContain("Shopping-Beschreibung");
+    expect(infoContainer.content).toContain("Shopping description");
     expect(toList).not.toHaveBeenCalled();
     expect(debug).toHaveBeenCalledWith(
       expect.stringContaining(
@@ -348,7 +348,7 @@ describe("DashboardScreen integration", () => {
       throw new Error("Expected text info container");
     }
 
-    expect(infoContainer.content).toContain("Shopping-Beschreibung");
+    expect(infoContainer.content).toContain("Shopping description");
     expect(toList).not.toHaveBeenCalled();
   });
 
@@ -356,7 +356,7 @@ describe("DashboardScreen integration", () => {
     const screen = createDashboardScreen(
       createRouter(),
       createDataService([
-        { id: "dashboard-rss", label: "RSS-Feeds", listId: RSS_LIST_ID },
+        { id: "dashboard-rss", label: "RSS Feeds", listId: RSS_LIST_ID },
       ]),
       createLogger()
     );
@@ -366,7 +366,7 @@ describe("DashboardScreen integration", () => {
     if (!infoContainer || infoContainer.type !== "text") {
       throw new Error("Expected text info container");
     }
-    expect(infoContainer.content).toContain("Keine Kurzbeschreibung verfuegbar.");
+    expect(infoContainer.content).toContain("No description available.");
   });
 });
 

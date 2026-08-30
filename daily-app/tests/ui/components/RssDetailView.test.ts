@@ -6,11 +6,11 @@ describe("buildDetailViewModel", () => {
     const viewModel = buildDetailViewModel(
       {
         id: "item-1",
-        title: "Titel",
-        description: "Beschreibung",
-        pages: ["Seite eins", "Seite zwei"],
+        title: "Title",
+        description: "Description",
+        pages: ["Page one", "Page two"],
         source: "RSS",
-        pubDateText: "Heute",
+        pubDateText: "Today",
       },
       { pageIndex: 1, autoScrollEnabled: true }
     );
@@ -20,13 +20,13 @@ describe("buildDetailViewModel", () => {
     expect(viewModel.containers[0]).toMatchObject({
       type: "text",
       id: "title",
-      content: "Titel",
+      content: "Title",
       eventCapture: 0,
     });
     expect(viewModel.containers[1]).toMatchObject({
       type: "text",
       id: "body",
-      content: "Seite zwei",
+      content: "Page two",
       eventCapture: 1,
     });
     expect(viewModel.containers[2]).toMatchObject({
@@ -61,8 +61,8 @@ describe("buildDetailViewModel", () => {
       {
         id: "item-1",
         title: "A".repeat(220),
-        description: "Beschreibung",
-        pages: ["Seite eins"],
+        description: "Description",
+        pages: ["Page one"],
         source: "RSS",
       },
       { pageIndex: 0, autoScrollEnabled: false }
@@ -73,12 +73,16 @@ describe("buildDetailViewModel", () => {
       id: "title",
       eventCapture: 0,
     });
-    expect(viewModel.containers[0].content).toHaveLength(180);
-    expect(viewModel.containers[0].content).toContain("[gekuerzt]");
+    const titleContainer = viewModel.containers[0];
+    if (titleContainer.type !== "text") {
+      throw new Error("Expected title text container");
+    }
+    expect(titleContainer.content).toHaveLength(180);
+    expect(titleContainer.content).toContain("[truncated]");
     expect(viewModel.containers[1]).toMatchObject({
       type: "text",
       id: "body",
-      content: "Seite eins",
+      content: "Page one",
       eventCapture: 1,
     });
   });

@@ -2,7 +2,7 @@ import type { InputEvent } from "../../../../src/input/keyBindings";
 
 export const clickByLabelRss: InputEvent = {
   type: "Click",
-  raw: { listEvent: { currentSelectItemName: "RSS-Feeds" } },
+  raw: { listEvent: { currentSelectItemName: "RSS Feeds" } },
 };
 
 export const clickByLabelShopping: InputEvent = {

@@ -17,5 +17,5 @@
       "desc": "Capture audio from the glasses mic for voice todo input."
     }
   ],
-  "supported_languages": ["de", "en"]
+  "supported_languages": ["en"]
 }

@@ -87,7 +87,7 @@ export class RssConfigService {
     });
     const ok = await this.storage.set(STORAGE_KEY, payload);
     if (!ok) {
-      throw new Error("RSS-Konfiguration konnte nicht gespeichert werden.");
+      throw new Error("Unable to save the RSS configuration.");
     }
   }
 }
